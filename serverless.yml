@@ -13,7 +13,17 @@ provider:
         Action:
           - ec2:RevokeSecurityGroupIngress
         Resource: "*"
-
+      - Effect: Allow
+        Action:
+          - 'sns:Publish'
+        Resource:
+          - Ref: TagEnforcerSNSTopic
+      - Effect: Allow
+        Action:
+          - 'lambda:ListFunctions'
+          - 'lambda:GetFunction'
+        Resource:
+          - '*'
 plugins:
   - '@serverless/enterprise-plugin'
   - serverless-offline
@@ -39,3 +49,27 @@ functions:
             detail:
               eventName:
                 - AuthorizeSecurityGroupIngress
+  tagEnforcer:
+    handler: enforcer.run
+    runtime: python2.7
+    environment:
+      # This will eventually use the CloudFormation
+      # Reference feature to tell our function environment
+      # about the actual ARN of our topic
+      SNS_TOPIC_ARN: {Ref: TagEnforcerSNSTopic}
+    events:
+      - schedule: rate(5 minutes)
+      # You can use the above shorthand, or you can also use
+      # a cron like syntax if you need more power
+      # For example: Every 5 minutes between 8:00 AM and 5:55 PM weekdays
+      # - schedule: cron(0/5 8-17 ? * MON-FRI *)
+
+
+resources:
+  Resources:
+    TagEnforcerSNSTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        Subscription:
+          - Endpoint: realemail
+            Protocol: "email"
