@@ -8,6 +8,7 @@ frameworkVersion: ">=1.37.1"
 
 provider:
   name: aws
+  runtime: nodejs8.10
   iamRoleStatements:
       - Effect: Allow
         Action:
@@ -71,5 +72,5 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         Subscription:
-          - Endpoint: realemail
+          - Endpoint: alexkhimich@google.com
             Protocol: "email"
